@@ -25,6 +25,12 @@ map.player.script?.properties.push(playerLastEquippedWeaponID)
 map.player.script
   ?.on('ouch', () => {
     return `
+      set @hp ^life
+      dec @hp ^&param1
+      if (@hp <= 0) {
+        sendevent change_weapon self "none"
+      }
+
       IF (^#PARAM1 > 20) {
         SPEAK [Player_ouch_strong] NOP
         ACCEPT
@@ -65,9 +71,15 @@ map.player.script
       if (${playerLastEquippedWeaponID.name} != "") {
         destroy ${playerLastEquippedWeaponID.name}
       }
-      spawn item "weapons/~^$param1~/~^$param1~" player
-      sendevent inventoryuse ~^last_spawned~ nop
-      set ${playerLastEquippedWeaponID.name} ~^last_spawned~
+
+      if (^$param1 == "none") {
+        sendevent equipout player ~${playerLastEquippedWeaponID.name}~
+        set ${playerLastEquippedWeaponID.name} ""
+      } else {
+        spawn item "weapons/~^$param1~/~^$param1~" player
+        sendevent inventoryuse ~^last_spawned~ nop
+        set ${playerLastEquippedWeaponID.name} ~^last_spawned~
+      }
     `
   })
 

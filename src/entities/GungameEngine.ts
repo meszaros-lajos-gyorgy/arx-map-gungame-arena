@@ -67,9 +67,9 @@ export class GungameEngine extends Entity {
       'reset_weapons',
       () => {
         return `
-        sendevent change_weapon player "${weapon} ${damage}"
-        sendevent -g bot change_weapon "${weapon} ${damage}"
-      `
+          sendevent change_weapon player "${weapon} ${damage}"
+          sendevent -g bot change_weapon "${weapon} ${damage}"
+        `
       },
       'goto',
     )
@@ -83,8 +83,6 @@ export class GungameEngine extends Entity {
         ${delay(1000)} ${resetWeapons.invoke()}
       `
     })
-
-    // TODO: when the npc or player dies it drops it's weapon
 
     // https://wiki.arx-libertatis.org/Script:setweapon
   }

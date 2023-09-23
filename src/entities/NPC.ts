@@ -269,6 +269,12 @@ export class NPC extends Entity {
       }
 
       return `
+        set @hp ^life
+        dec @hp ^&param1
+        if (@hp <= 0) {
+          sendevent change_weapon self "none 0"
+        }
+
         if (^&param1 < ${this.propPainTolerance.name}) {
           forceanim hit_short
         } else {
@@ -321,7 +327,7 @@ export class NPC extends Entity {
 
       return `
         setweapon ~^$param1~
-        set_npc_stat damages ^#param2 // + 10
+        set_npc_stat damages ^#param2
       `
     })
   }
