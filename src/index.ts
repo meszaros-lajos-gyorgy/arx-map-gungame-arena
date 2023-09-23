@@ -1,6 +1,6 @@
 import { ArxMap, Color, HudElements, Rotation, Settings, Texture, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { Variable } from 'arx-level-generator/scripting/properties'
+import { PlayerControls, Variable } from 'arx-level-generator/scripting/properties'
 import { applyTransformations } from 'arx-level-generator/utils'
 import { times } from 'arx-level-generator/utils/faux-ramda'
 import { pickRandom } from 'arx-level-generator/utils/random'
@@ -77,8 +77,16 @@ map.player.script
         set ${playerLastEquippedWeaponID.name} ""
       } else {
         spawn item "weapons/~^$param1~/~^$param1~" player
-        sendevent inventoryuse ~^last_spawned~ nop
         set ${playerLastEquippedWeaponID.name} ~^last_spawned~
+
+        set £is_in_combat_mode ^fighting
+        ${PlayerControls.off}
+        playanim -12 none
+        ${PlayerControls.on}
+        sendevent inventoryuse ${playerLastEquippedWeaponID.name} nop
+        if (£is_in_combat_mode == 1) {
+          // TODO: restore combat mode
+        }
       }
     `
   })
