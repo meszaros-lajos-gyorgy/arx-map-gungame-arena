@@ -254,7 +254,7 @@ export class NPC extends Entity {
         return ''
       }
 
-      const delay = useDelay()
+      const { delay } = useDelay()
 
       return `
         set ${this.propIsRespawning.name} 1

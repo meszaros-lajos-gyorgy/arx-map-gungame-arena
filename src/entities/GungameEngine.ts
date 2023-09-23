@@ -77,7 +77,7 @@ export class GungameEngine extends Entity {
     this.script?.subroutines.push(resetWeapons)
 
     this.script?.on('initend', () => {
-      const delay = useDelay()
+      const { delay } = useDelay()
 
       return `
         ${delay(1000)} ${resetWeapons.invoke()}

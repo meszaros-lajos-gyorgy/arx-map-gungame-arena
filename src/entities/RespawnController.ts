@@ -53,38 +53,34 @@ export class RespawnController extends Entity {
     const resurrectNpc = new ScriptSubroutine(
       'resurrect_npc',
       () => {
-        const delay = useDelay()
+        const { uniqueDelay } = useDelay()
 
         return `
-        if (${this.propRespawnQueueSize.name} > 0) {
-          sendevent respawn ${this.propRespawnQueueEntries[0].name} nop
+          if (${this.propRespawnQueueSize.name} > 0) {
+            sendevent respawn ${this.propRespawnQueueEntries[0].name} nop
 
-          inc ${this.propSpawnProtectionQueueSize.name} 1
-          set £spawn_protection_queue_entry_~${this.propSpawnProtectionQueueSize.name}~ ${
-            this.propRespawnQueueEntries[0].name
-          }
-
-          herosay "ok"
-
-          // move respawn queue entries to the left
-          ${times((i) => {
-            if (i === numberOfBots - 1) {
-              return `    set ${this.propRespawnQueueEntries[i].name} ""`
-            } else {
-              return `    set ${this.propRespawnQueueEntries[i].name} ${this.propRespawnQueueEntries[i + 1].name}`
+            set £spawn_protection_queue_entry_~${this.propSpawnProtectionQueueSize.name}~ ${
+              this.propRespawnQueueEntries[0].name
             }
-          }, numberOfBots).join('\n')}
+            inc ${this.propSpawnProtectionQueueSize.name} 1
 
-          herosay "ok2"
+            // move respawn queue entries to the left
+            ${times((i) => {
+              const currentEntry = this.propRespawnQueueEntries[i]
+              const nextEntry = this.propRespawnQueueEntries[i + 1]
 
-          dec ${this.propRespawnQueueSize.name} 1
+              if (i === numberOfBots - 1) {
+                return `    set ${currentEntry.name} ""`
+              } else {
+                return `    set ${currentEntry.name} ${nextEntry.name}`
+              }
+            }, numberOfBots).join('\n')}
 
-          herosay "ok3"
+            dec ${this.propRespawnQueueSize.name} 1
 
-
-          ${delay(SPAWN_PROTECTION_TIME)} ${spawnProtectOffNpc.invoke()}
-        }
-      `
+            ${uniqueDelay(SPAWN_PROTECTION_TIME)} ${spawnProtectOffNpc.invoke()}
+          }
+        `
       },
       'goto',
     )
@@ -93,45 +89,41 @@ export class RespawnController extends Entity {
       'spawn_protect_off_npc',
       () => {
         return `
-        herosay "ok4"
+          if (${this.propSpawnProtectionQueueSize.name} > 0) {
+            sendevent spawn_protect_off ${this.propSpawnProtectionQueueEntries[0].name} nop
 
-        if (${this.propSpawnProtectionQueueSize.name} > 0) {
-          sendevent spawn_protect_off ${this.propSpawnProtectionQueueEntries[0].name} nop
+            // move spawn protection queue to the left
+            ${times((i) => {
+              const currentEntry = this.propSpawnProtectionQueueEntries[i]
+              const nextEntry = this.propSpawnProtectionQueueEntries[i + 1]
+              if (i === numberOfBots - 1) {
+                return `    set ${currentEntry.name} ""`
+              } else {
+                return `    set ${currentEntry.name} ${nextEntry.name}`
+              }
+            }, numberOfBots).join('\n')}
 
-
-          ${times((i) => {
-            if (i === numberOfBots - 1) {
-              return `    set ${this.propSpawnProtectionQueueEntries[i].name} ""`
-            } else {
-              return `    set ${this.propSpawnProtectionQueueEntries[i].name} ${
-                this.propSpawnProtectionQueueEntries[i + 1].name
-              }`
-            }
-          }, numberOfBots).join('\n')}
-
-          
-
-          dec ${this.propSpawnProtectionQueueSize.name} 1
-        }
-      `
+            dec ${this.propSpawnProtectionQueueSize.name} 1
+          }
+        `
       },
       'goto',
     )
 
     const spawnProtectOn = new ScriptSubroutine('spawn_protect_on', () => {
       return `
-        sendevent glow player on
-        invulnerability -p on // [p] = ?
-      `
+          sendevent glow player on
+          invulnerability -p on // [p] = player
+        `
     })
 
     const spawnProtectOff = new ScriptSubroutine(
       'spawn_protect_off',
       () => {
         return `
-        sendevent glow player off
-        invulnerability -p off // [p] = ?
-      `
+          sendevent glow player off
+          invulnerability -p off // [p] = player
+        `
       },
       'goto',
     )
@@ -148,13 +140,13 @@ export class RespawnController extends Entity {
     const resurrect = new ScriptSubroutine(
       'resurrect',
       () => {
-        const delay = useDelay()
+        const { delay } = useDelay()
 
         return `
-        ${respawn.invoke()}
-        ${spawnProtectOn.invoke()}
-        ${delay(SPAWN_PROTECTION_TIME)} ${spawnProtectOff.invoke()}
-      `
+          ${respawn.invoke()}
+          ${spawnProtectOn.invoke()}
+          ${delay(SPAWN_PROTECTION_TIME)} ${spawnProtectOff.invoke()}
+        `
       },
       'goto',
     )
@@ -162,7 +154,7 @@ export class RespawnController extends Entity {
     this.script?.subroutines.push(resurrectNpc, spawnProtectOffNpc, spawnProtectOn, spawnProtectOff, respawn, resurrect)
 
     this.script?.on('killed', () => {
-      const delay = useDelay()
+      const { delay, uniqueDelay } = useDelay()
 
       return `
         set £victimID ^$param1
@@ -178,9 +170,10 @@ export class RespawnController extends Entity {
         } else {
           sendevent died ${gameController.ref} "~£victimID~ ~£killerID~"
 
+          set £respawn_queue_entry_~${this.propRespawnQueueSize.name}~ £victimID
           inc ${this.propRespawnQueueSize.name} 1
-          set "£respawnQueueItem~${this.propRespawnQueueSize.name}~" £victimID
-          ${delay(DEATHCAM_TIME)} ${resurrectNpc.invoke()}
+
+          ${uniqueDelay(DEATHCAM_TIME)} ${resurrectNpc.invoke()}
         }
       `
     })

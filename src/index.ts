@@ -106,7 +106,7 @@ map.entities.push(rootNpc)
 
 const npcs = times((i) => {
   return new NPC({
-    position: new Vector3(-100 + -200 * (numberOfBots / 2) + i * 200, 0, 300),
+    position: new Vector3(50 + -100 * (numberOfBots / 2) + i * 100, 0, 300),
     orientation: new Rotation(0, MathUtils.degToRad(180), 0),
     type: pickRandom(['arx guard', 'rebel guard']),
   })
