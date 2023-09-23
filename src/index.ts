@@ -102,8 +102,7 @@ map.polygons.addThreeJsMesh(floor)
 const gungameEngine = new GungameEngine()
 map.entities.push(gungameEngine)
 
-// this needs to be 2+, otherwise RespawnController fails
-const numberOfBots = 10
+const numberOfBots = 3
 
 const respawnController = new RespawnController({
   numberOfBots,
