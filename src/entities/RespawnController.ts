@@ -58,6 +58,7 @@ export class RespawnController extends Entity {
         return `
           if (${this.propRespawnQueueSize.name} > 0) {
             sendevent respawn ${this.propRespawnQueueEntries[0].name} nop
+            sendevent respawn ${gameController.ref} ~${this.propRespawnQueueEntries[0].name}~
 
             set £spawn_protection_queue_entry_~${this.propSpawnProtectionQueueSize.name}~ ${
               this.propRespawnQueueEntries[0].name

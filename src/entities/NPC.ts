@@ -272,7 +272,7 @@ export class NPC extends Entity {
         set @hp ^life
         dec @hp ^&param1
         if (@hp <= 0) {
-          sendevent change_weapon self "none 0"
+          setweapon "none"
         }
 
         if (^&param1 < ${this.propPainTolerance.name}) {

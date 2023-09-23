@@ -1,6 +1,6 @@
-import { ArxMap, Color, HudElements, Rotation, Settings, Texture, Vector3 } from 'arx-level-generator'
+import { ArxMap, Color, Entity, HudElements, Rotation, Settings, Texture, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
-import { PlayerControls, Variable } from 'arx-level-generator/scripting/properties'
+import { Interactivity, PlayerControls, Scale, Shadow, Variable } from 'arx-level-generator/scripting/properties'
 import { applyTransformations } from 'arx-level-generator/utils'
 import { times } from 'arx-level-generator/utils/faux-ramda'
 import { pickRandom } from 'arx-level-generator/utils/random'
@@ -107,10 +107,17 @@ map.polygons.addThreeJsMesh(floor)
 
 // -------------------------------------
 
-const gungameEngine = new GungameEngine()
-map.entities.push(gungameEngine)
-
 const numberOfBots = 3
+
+const soundEmitterForPlayer = Entity.fern.withScript()
+soundEmitterForPlayer.script?.properties.push(Shadow.off, Interactivity.off, new Scale(0.01))
+map.entities.push(soundEmitterForPlayer)
+
+const gungameEngine = new GungameEngine({
+  numberOfBots,
+  soundEmitterForPlayer,
+})
+map.entities.push(gungameEngine)
 
 const respawnController = new RespawnController({
   numberOfBots,
