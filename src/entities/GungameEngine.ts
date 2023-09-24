@@ -48,7 +48,6 @@ export const tiers: WeaponData[] = [
     damage: 7,
   },
   {
-    // TODO: need quiver (weapons/arrows/arrows)
     weapon: 'bow',
     damage: 6,
   },
@@ -76,9 +75,10 @@ export class GungameEngine extends Entity {
     this.withScript()
 
     const playerLevel = new Variable('int', 'player_level', 0)
-    const playerKills = new Variable('int', 'player_kills', 0)
+    const playerKillsPerLevel = new Variable('int', 'player_kills_per_level', 0)
+    const playerTotalKills = new Variable('int', 'player_total_kills', 0)
 
-    this.script?.properties.push(playerLevel, playerKills)
+    this.script?.properties.push(playerLevel, playerKillsPerLevel, playerTotalKills)
 
     const { weapon, damage } = tiers[0]
 
@@ -109,11 +109,12 @@ export class GungameEngine extends Entity {
           set £killerID ^$param2
 
           if (£killerID == "player") {
-            inc ${playerKills.name} 1
-            if (${playerKills.name} < 2) {
+            int ${playerTotalKills.name} 1
+            inc ${playerKillsPerLevel.name} 1
+            if (${playerKillsPerLevel.name} < 2) {
               sendevent play ${soundEmitterForPlayer.ref} point
             } else {
-              set ${playerKills.name} 0
+              set ${playerKillsPerLevel.name} 0
               inc ${playerLevel.name} 1
               
               if (${playerLevel.name} < ${tiers.length}) {
@@ -144,7 +145,11 @@ export class GungameEngine extends Entity {
       })
       .on('victory', () => {
         return `
-          herosay "~^$param1~ won the match!"
+          if (^$param1 == "player") {
+            herosay "~^$param1~ won the match with ~${playerTotalKills.name}~ kills!"
+          } else {
+            herosay "~^$param1~ won the match!"
+          }
           ${PlayerControls.off}
 
           // TODO: stop bots

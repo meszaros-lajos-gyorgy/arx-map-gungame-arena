@@ -79,6 +79,11 @@ map.player.script
         spawn item "weapons/~^$param1~/~^$param1~" player
         set ${playerLastEquippedWeaponID.name} ~^last_spawned~
 
+        if (^$param1 == "bow") {
+          spawn item "weapons/arrows/arrows" player
+          inventory addfromscene ~^last_spawned~
+        }
+
         set £is_in_combat_mode ^fighting
         ${PlayerControls.off}
         playanim -12 none
