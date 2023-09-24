@@ -5,6 +5,11 @@ export const levelUp = Audio.fromCustomFile({
   sourcePath: './sfx/gungame',
 })
 
+export const levelDown = Audio.fromCustomFile({
+  filename: 'smb3_powerdown',
+  sourcePath: './sfx/gungame',
+})
+
 export const point = Audio.fromCustomFile({
   filename: 'bell1',
   sourcePath: './sfx/half-life/valve/sound/buttons',

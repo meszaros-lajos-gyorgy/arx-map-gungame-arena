@@ -144,6 +144,7 @@ export class RespawnController extends Entity {
         const { delay } = useDelay()
 
         return `
+          sendevent respawn ${gameController.ref} "player"
           ${respawn.invoke()}
           ${spawnProtectOn.invoke()}
           ${delay(SPAWN_PROTECTION_TIME)} ${spawnProtectOff.invoke()}

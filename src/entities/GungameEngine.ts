@@ -8,10 +8,10 @@
 import { Expand } from 'arx-convert/utils'
 import { Entity, EntityConstructorPropsWithoutSrc } from 'arx-level-generator'
 import { ScriptSubroutine } from 'arx-level-generator/scripting'
-import { Sound, SoundFlags } from 'arx-level-generator/scripting/classes'
+import { Sound } from 'arx-level-generator/scripting/classes'
 import { useDelay } from 'arx-level-generator/scripting/hooks'
 import { PlayerControls, Variable } from 'arx-level-generator/scripting/properties'
-import { point, levelUp } from '@/sounds.js'
+import { point, levelUp, levelDown } from '@/sounds.js'
 
 type WeaponData = {
   weapon: string
@@ -67,9 +67,10 @@ export class GungameEngine extends Entity {
       ...props,
     })
 
-    this.otherDependencies.push(levelUp, point)
+    this.otherDependencies.push(levelUp, levelDown, point)
 
     const levelUpSound = new Sound(levelUp.filename)
+    const levelDownSound = new Sound(levelDown.filename)
     const pointSound = new Sound(point.filename)
 
     this.withScript()
@@ -86,14 +87,35 @@ export class GungameEngine extends Entity {
       'reset_weapons',
       () => {
         return `
-          sendevent change_weapon player "${weapon} ${damage}"
+          set ${playerKillsPerLevel.name} 0
+          set ${playerLevel.name} 0
+          ${playerLevelChanged.invoke()}
+
           sendevent -g bot change_weapon "${weapon} ${damage}"
         `
       },
       'goto',
     )
 
-    this.script?.subroutines.push(resetWeapons)
+    const playerLevelChanged = new ScriptSubroutine(
+      'player_level_changed',
+      () => {
+        return `
+          ${tiers
+            .map(({ weapon, damage }, i) => {
+              return `
+                if (${playerLevel.name} == ${i}) {
+                  sendevent change_weapon player "${weapon} ${damage}"
+                }
+              `
+            })
+            .join('\n')}
+        `
+      },
+      'goto',
+    )
+
+    this.script?.subroutines.push(resetWeapons, playerLevelChanged)
 
     this.script
       ?.on('initend', () => {
@@ -107,9 +129,10 @@ export class GungameEngine extends Entity {
         return `
           set £victimID ^$param1
           set £killerID ^$param2
+          set £killerWeapon "unknown" // TODO: get killer's weapon
 
           if (£killerID == "player") {
-            int ${playerTotalKills.name} 1
+            inc ${playerTotalKills.name} 1
             inc ${playerKillsPerLevel.name} 1
             if (${playerKillsPerLevel.name} < 2) {
               sendevent play ${soundEmitterForPlayer.ref} point
@@ -119,20 +142,28 @@ export class GungameEngine extends Entity {
               
               if (${playerLevel.name} < ${tiers.length}) {
                 sendevent play ${soundEmitterForPlayer.ref} level_up
-
-                ${tiers
-                  .map(({ weapon, damage }, i) => {
-                    return `
-                      if (${playerLevel.name} == ${i}) {
-                        sendevent change_weapon player "${weapon} ${damage}"
-                      }
-                    `
-                  })
-                  .join('\n')}
+                ${playerLevelChanged.invoke()}
               } else {
                 sendevent victory self player
               }
             }
+          }
+
+          if (£killerID == "none") {
+            if (£victimID == "player") {
+              set ${playerKillsPerLevel.name} 0
+              if (${playerLevel.name} > 0) {
+                sendevent play ${soundEmitterForPlayer.ref} level_down
+                dec ${playerLevel.name} 1
+              }
+            }
+            if (£victimID isgroup "bot") {
+              // TODO: a bot died via falling from too high
+            }
+          }
+
+          if (£killerID isgroup "bot") {
+            // TODO: a bot killed someone
           }
         `
       })
@@ -140,7 +171,11 @@ export class GungameEngine extends Entity {
         const { weapon, damage } = tiers[0]
 
         return `
-          sendevent change_weapon ^$param1 "${weapon} ${damage}"
+          if (^$param1 == "player") {
+            ${playerLevelChanged.invoke()}
+          } else {
+            sendevent change_weapon ^$param1 "${weapon} ${damage}"
+          }
         `
       })
       .on('victory', () => {
@@ -166,7 +201,9 @@ export class GungameEngine extends Entity {
           if (^$param1 == "level_up") {
             ${levelUpSound.play()}
           }
-          
+          if (^$param1 == "level_down") {
+            ${levelDownSound.play()}
+          }
         `
     })
   }
