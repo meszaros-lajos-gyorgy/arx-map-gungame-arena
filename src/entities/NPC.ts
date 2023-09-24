@@ -17,6 +17,7 @@ export class NPC extends Entity {
   protected propPainTolerance: Variable<number>
   protected propLastTimeSayingOuch: Variable<number>
   protected propIsRespawning: Variable<boolean>
+  public propLastHitGotFrom: Variable<string>
 
   constructor({ type, ...props }: NPCConstructorProps = { type: 'arx guard' }) {
     super({
@@ -30,12 +31,14 @@ export class NPC extends Entity {
     this.propPainTolerance = new Variable('int', 'pain_tolerance', 1)
     this.propLastTimeSayingOuch = new Variable('int', 'last_time_saying_ouch', 0)
     this.propIsRespawning = new Variable('bool', 'is_respawning', false, true)
+    this.propLastHitGotFrom = new Variable('string', 'last_hit_got_from', '')
 
     this.script?.properties.push(
       this.propType,
       this.propPainTolerance,
       this.propLastTimeSayingOuch,
       this.propIsRespawning,
+      this.propLastHitGotFrom,
     )
 
     const setType = new ScriptSubroutine('set_type', () => {
@@ -246,6 +249,16 @@ export class NPC extends Entity {
         ${Collision.on}
         playanim -12 none
         sendevent glow self on
+      `
+    })
+
+    this.script?.on('hit', () => {
+      if (!this.script?.isRoot) {
+        return ''
+      }
+
+      return `
+        set ${this.propLastHitGotFrom.name} ^$param2
       `
     })
 

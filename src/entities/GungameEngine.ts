@@ -16,40 +16,54 @@ import { point, levelUp, levelDown } from '@/sounds.js'
 type WeaponData = {
   weapon: string
   damage: number
+  killsNeededForNextLevel: number
 }
 
 export const tiers: WeaponData[] = [
   {
     weapon: 'bone_weap',
     damage: 1,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'dagger',
     damage: 2,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'club',
     damage: 3,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'short_sword',
     damage: 4,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'long_sword',
     damage: 5,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'sabre',
     damage: 6,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'long_sword_ciprian',
     damage: 7,
+    killsNeededForNextLevel: 2,
   },
   {
     weapon: 'bow',
     damage: 6,
+    killsNeededForNextLevel: 2,
+  },
+  {
+    weapon: 'none',
+    damage: 0,
+    killsNeededForNextLevel: 1,
   },
 ]
 
@@ -129,14 +143,10 @@ export class GungameEngine extends Entity {
         return `
           set £victimID ^$param1
           set £killerID ^$param2
-          set £killerWeapon "unknown" // TODO: get killer's weapon
+          set £killerWeapon ^$param3
 
           if (£killerID == "player") {
-            inc ${playerTotalKills.name} 1
-            inc ${playerKillsPerLevel.name} 1
-            if (${playerKillsPerLevel.name} < 2) {
-              sendevent play ${soundEmitterForPlayer.ref} point
-            } else {
+            if (£killerWeapon == "bare") {
               set ${playerKillsPerLevel.name} 0
               inc ${playerLevel.name} 1
               
@@ -145,6 +155,33 @@ export class GungameEngine extends Entity {
                 ${playerLevelChanged.invoke()}
               } else {
                 sendevent victory self player
+              }
+            } else {
+              inc ${playerTotalKills.name} 1
+              inc ${playerKillsPerLevel.name} 1
+
+              ${tiers
+                .map(({ killsNeededForNextLevel }, i) => {
+                  return `
+                    if (${playerLevel.name} == ${i}) {
+                      set §killsNeededForNextLevel ${killsNeededForNextLevel}
+                    }
+                  `
+                })
+                .join('\n')}
+
+              if (${playerKillsPerLevel.name} < §killsNeededForNextLevel) {
+                sendevent play ${soundEmitterForPlayer.ref} point
+              } else {
+                set ${playerKillsPerLevel.name} 0
+                inc ${playerLevel.name} 1
+                
+                if (${playerLevel.name} < ${tiers.length}) {
+                  sendevent play ${soundEmitterForPlayer.ref} level_up
+                  ${playerLevelChanged.invoke()}
+                } else {
+                  sendevent victory self player
+                }
               }
             }
           }

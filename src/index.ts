@@ -134,7 +134,7 @@ const rootNpc = new NPC()
 rootNpc.script?.makeIntoRoot()
 rootNpc.script?.on('die', () => {
   return `
-    sendevent killed ${respawnController.ref} "~^me~ ~^sender~"
+    sendevent killed ${respawnController.ref} "~^me~ ~^sender~ ~${rootNpc.propLastHitGotFrom.name}~"
   `
 })
 map.entities.push(rootNpc)

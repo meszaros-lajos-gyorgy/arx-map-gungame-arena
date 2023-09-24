@@ -161,16 +161,17 @@ export class RespawnController extends Entity {
       return `
         set £victimID ^$param1
         set £killerID ^$param2
+        set £killerWeapon ^$param3
 
         if (£victimID == "player") {
           if (${this.propIgnoreNextKillEvent.name} == 1) {
             set ${this.propIgnoreNextKillEvent.name} 0
           } else {
-            sendevent died ${gameController.ref} "~£victimID~ ~£killerID~"
+            sendevent died ${gameController.ref} "~£victimID~ ~£killerID~ ~£killerWeapon~"
             ${delay(DEATHCAM_TIME)} ${resurrect.invoke()}
           }
         } else {
-          sendevent died ${gameController.ref} "~£victimID~ ~£killerID~"
+          sendevent died ${gameController.ref} "~£victimID~ ~£killerID~ ~£killerWeapon~"
 
           set £respawn_queue_entry_~${this.propRespawnQueueSize.name}~ £victimID
           inc ${this.propRespawnQueueSize.name} 1
