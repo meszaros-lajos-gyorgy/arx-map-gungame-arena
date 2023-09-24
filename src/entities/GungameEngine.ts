@@ -150,8 +150,6 @@ export class GungameEngine extends Entity {
           set £killerID ^$param2
           set £killerWeapon ^$param3
 
-          herosay £killerWeapon
-
           if (£killerID == "player") {
             if (£killerWeapon == "bare") {
               set ${playerKillsPerLevel.name} 0
