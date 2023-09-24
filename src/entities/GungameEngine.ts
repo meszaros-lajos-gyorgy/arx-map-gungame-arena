@@ -56,6 +56,11 @@ export const tiers: WeaponData[] = [
     killsNeededForNextLevel: 2,
   },
   {
+    weapon: 'sword_2handed',
+    damage: 10,
+    killsNeededForNextLevel: 2,
+  },
+  {
     weapon: 'bow',
     damage: 6,
     killsNeededForNextLevel: 2,
@@ -144,6 +149,8 @@ export class GungameEngine extends Entity {
           set £victimID ^$param1
           set £killerID ^$param2
           set £killerWeapon ^$param3
+
+          herosay £killerWeapon
 
           if (£killerID == "player") {
             if (£killerWeapon == "bare") {
