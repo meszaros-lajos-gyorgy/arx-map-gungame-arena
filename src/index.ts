@@ -132,7 +132,11 @@ map.entities.push(respawnController)
 
 const rootNpc = new NPC()
 rootNpc.script?.makeIntoRoot()
-rootNpc.script?.on('die', () => `sendevent killed ${respawnController.ref} "~^me~ ~^sender~"`)
+rootNpc.script?.on('die', () => {
+  return `
+    sendevent killed ${respawnController.ref} "~^me~ ~^sender~"
+  `
+})
 map.entities.push(rootNpc)
 
 const npcs = times((i) => {
