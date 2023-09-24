@@ -116,10 +116,8 @@ export class GungameEngine extends Entity {
       'goto',
     )
 
-    const playerLevelChanged = new ScriptSubroutine(
-      'player_level_changed',
-      () => {
-        return `
+    const playerLevelChanged = new ScriptSubroutine('player_level_changed', () => {
+      return `
           ${tiers
             .map(({ weapon, damage }, i) => {
               return `
@@ -130,9 +128,7 @@ export class GungameEngine extends Entity {
             })
             .join('\n')}
         `
-      },
-      'goto',
-    )
+    })
 
     this.script?.subroutines.push(resetWeapons, playerLevelChanged)
 
@@ -151,6 +147,8 @@ export class GungameEngine extends Entity {
           set £killerWeapon ^$param3
 
           if (£killerID == "player") {
+            inc ${playerTotalKills.name} 1
+
             if (£killerWeapon == "bare") {
               set ${playerKillsPerLevel.name} 0
               inc ${playerLevel.name} 1
@@ -162,7 +160,6 @@ export class GungameEngine extends Entity {
                 sendevent victory self player
               }
             } else {
-              inc ${playerTotalKills.name} 1
               inc ${playerKillsPerLevel.name} 1
 
               ${tiers
