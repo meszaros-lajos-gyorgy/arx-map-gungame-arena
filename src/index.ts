@@ -1,6 +1,7 @@
 import { ArxMap, Color, Entity, HudElements, Rotation, Settings, Texture, Vector3 } from 'arx-level-generator'
 import { createPlaneMesh } from 'arx-level-generator/prefabs/mesh'
 import { Interactivity, PlayerControls, Scale, Shadow, Variable } from 'arx-level-generator/scripting/properties'
+import { createLight, createZone } from 'arx-level-generator/tools'
 import { applyTransformations } from 'arx-level-generator/utils'
 import { times } from 'arx-level-generator/utils/faux-ramda'
 import { pickRandom } from 'arx-level-generator/utils/random'
@@ -148,6 +149,23 @@ const npcs = times((i) => {
 }, numberOfBots)
 
 map.entities.push(...npcs)
+
+// -------------------------------------
+
+const light = createLight({
+  position: new Vector3(0, -200, 0),
+  radius: 1000,
+})
+
+map.lights.push(light)
+
+const spawnZone = createZone({
+  name: 'spawn-zone',
+  backgroundColor: Color.fromCSS('#888888'),
+  position: new Vector3(0, 0, 0),
+  size: new Vector3(100, Infinity, 100),
+})
+map.zones.push(spawnZone)
 
 // -------------------------------------
 
